@@ -4,6 +4,7 @@ import mongoose from "mongoose";
 import dotenv from "dotenv";
 import path from "path";
 import serviceRoutes from "./routes/services";
+import statusLogRoutes from "./routes/statusLogs";
 import { monitor } from "./monitor";
 
 dotenv.config();
@@ -18,11 +19,12 @@ app.use(express.json());
 
 // Rotas da API
 app.use("/services", serviceRoutes);
+app.use("/status-logs", statusLogRoutes);
 
 // Servir frontend em producao
 const frontendPath = path.join(__dirname, "..", "web", "dist");
 app.use(express.static(frontendPath));
-app.get("*", (_req, res) => {
+app.get("/{*path}", (_req, res) => {
   res.sendFile(path.join(frontendPath, "index.html"));
 });
 

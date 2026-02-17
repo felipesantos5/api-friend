@@ -1,11 +1,14 @@
 import axios from "axios";
 import Service from "./models/Service";
+import StatusLog from "./models/StatusLog";
 import { IService } from "./interfaces/IService";
 
 const GRACE_PERIOD_MS = 2 * 60 * 1000; // 2 minutos
+const SNAPSHOT_INTERVAL_MS = 60 * 60 * 1000; // 1 hora
 
 class Monitor {
   private intervals: Map<string, NodeJS.Timeout> = new Map();
+  private snapshotInterval: NodeJS.Timeout | null = null;
 
   /**
    * Inicia o monitoramento de todos os servicos cadastrados no banco
@@ -16,6 +19,31 @@ class Monitor {
 
     for (const service of services) {
       this.startWatching(service);
+    }
+
+    // Snapshot horario de todos os servicos
+    this.snapshotInterval = setInterval(async () => {
+      await this.takeSnapshot();
+    }, SNAPSHOT_INTERVAL_MS);
+  }
+
+  /**
+   * Cria snapshot de status de todos os servicos (para dados de grafico)
+   */
+  private async takeSnapshot(): Promise<void> {
+    try {
+      const services = await Service.find();
+      const now = new Date();
+      const logs = services.map((s) => ({
+        serviceId: s._id.toString(),
+        status: s.status,
+        checkedAt: now,
+      }));
+      if (logs.length > 0) {
+        await StatusLog.insertMany(logs);
+      }
+    } catch (err) {
+      console.error("[MONITOR] Erro ao criar snapshot:", err);
     }
   }
 
@@ -73,6 +101,13 @@ class Monitor {
             service.status = "online";
             await service.save();
 
+            // Registrar transicao no historico
+            await StatusLog.create({
+              serviceId: id,
+              status: "online",
+              checkedAt: new Date(),
+            });
+
             // Notificar Discord que voltou
             await this.sendDiscordNotification(service, true);
           }
@@ -93,8 +128,18 @@ class Monitor {
   private async handleFailure(service: IService): Promise<void> {
     console.log(`[MONITOR] ❌ ${service.name} esta OFFLINE! (${service.url})`);
 
+    const wasOnline = service.status === "online";
     service.status = "offline";
     service.lastFailAt = new Date();
+
+    // Registrar transicao no historico
+    if (wasOnline) {
+      await StatusLog.create({
+        serviceId: service._id.toString(),
+        status: "offline",
+        checkedAt: new Date(),
+      });
+    }
 
     if (!service.isDeploying) {
       service.isDeploying = true;
