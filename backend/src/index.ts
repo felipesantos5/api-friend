@@ -3,6 +3,7 @@ import cors from "cors";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
 import path from "path";
+import fs from "fs";
 import serviceRoutes from "./routes/services";
 import statusLogRoutes from "./routes/statusLogs";
 import { monitor } from "./monitor";
@@ -21,12 +22,20 @@ app.use(express.json());
 app.use("/services", serviceRoutes);
 app.use("/status-logs", statusLogRoutes);
 
-// Servir frontend em producao
+// Servir frontend em producao (opcional)
 const frontendPath = path.join(__dirname, "..", "web", "dist");
-app.use(express.static(frontendPath));
-app.get("/{*path}", (_req, res) => {
-  res.sendFile(path.join(frontendPath, "index.html"));
-});
+
+if (fs.existsSync(frontendPath)) {
+  app.use(express.static(frontendPath));
+  app.get("*", (_req, res) => {
+    res.sendFile(path.join(frontendPath, "index.html"));
+  });
+} else {
+  app.get("/", (_req, res) => {
+    res.json({ message: "API Friend está rodando!", status: "Backend OK, Frontend não encontrado." });
+  });
+}
+
 
 // Conectar ao MongoDB e iniciar servidor
 mongoose
