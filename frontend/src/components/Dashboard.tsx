@@ -10,6 +10,7 @@ import logo from "@/assets/logo.png";
 
 export function Dashboard() {
   const [services, setServices] = useState<Service[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [configuring, setConfiguring] = useState<Service | null>(null);
   const [configOpen, setConfigOpen] = useState(false);
 
@@ -21,6 +22,8 @@ export function Dashboard() {
       setServices(data);
     } catch (err) {
       console.error("Failed to fetch services:", err);
+    } finally {
+      setIsLoading(false);
     }
   }, []);
 
@@ -102,7 +105,7 @@ export function Dashboard() {
         </div>
 
         {/* Table */}
-        <ServiceTable services={services} onConfigure={handleConfigure} />
+        <ServiceTable services={services} isLoading={isLoading} onConfigure={handleConfigure} />
 
         {/* Configure Dialog */}
         <ConfigureServiceDialog

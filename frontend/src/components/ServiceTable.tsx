@@ -1,15 +1,25 @@
 import { ServiceRow } from "@/components/ServiceRow";
 import type { Service } from "@/types";
+import { Loader2 } from "lucide-react";
 
 interface ServiceTableProps {
   services: Service[];
+  isLoading: boolean;
   onConfigure: (service: Service) => void;
 }
 
-export function ServiceTable({ services, onConfigure }: ServiceTableProps) {
+export function ServiceTable({ services, isLoading, onConfigure }: ServiceTableProps) {
+  if (isLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center py-32 text-zinc-500">
+        <Loader2 className="w-8 h-8 animate-spin mb-4 text-[#217ECE]" />
+      </div>
+    );
+  }
+
   if (services.length === 0) {
     return (
-      <div className="text-center py-16 text-zinc-500 text-lg">
+      <div className="text-center py-16 text-zinc-500 text-lg border border-dashed border-zinc-800 rounded-lg">
         No services yet. Add one to start monitoring.
       </div>
     );
