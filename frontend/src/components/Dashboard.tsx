@@ -57,7 +57,7 @@ export function Dashboard() {
     <div className="min-h-screen bg-black text-zinc-100">
       <div className="max-w-5xl mx-auto px-6 py-8">
         {/* Header */}
-        <div className="flex items-center justify-between mb-12 border-b border-white/5 pb-8">
+        <div className="flex items-center justify-between mb-7 border-b border-white/5 pb-8">
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 relative group">
               <div className="absolute -inset-1 bg-[#217ECE] rounded-full blur opacity-20 group-hover:opacity-40 transition duration-500"></div>

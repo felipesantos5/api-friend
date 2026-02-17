@@ -15,7 +15,7 @@ export function ServiceRow({ service, onConfigure }: ServiceRowProps) {
   const [days, setDays] = useState<StatusDay[]>([]);
 
   useEffect(() => {
-    getStatusLogs(service._id).then(setDays).catch(() => {});
+    getStatusLogs(service._id).then(setDays).catch(() => { });
   }, [service._id, service.status]);
 
   return (
@@ -32,7 +32,7 @@ export function ServiceRow({ service, onConfigure }: ServiceRowProps) {
       <td className="px-4 py-3">
         <UptimeChart days={days} />
       </td>
-      <td className="px-4 py-3">
+      <td className="px-4 py-3 text-right">
         <Button variant="ghost" size="sm" onClick={() => onConfigure(service)} className="text-zinc-400 hover:text-white">
           <Settings className="w-4 h-4" />
         </Button>

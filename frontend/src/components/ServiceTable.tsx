@@ -24,7 +24,7 @@ export function ServiceTable({ services, onConfigure }: ServiceTableProps) {
             <th className="px-4 py-3 text-left text-sm font-medium text-zinc-400">URL</th>
             <th className="px-4 py-3 text-left text-sm font-medium text-zinc-400">Status</th>
             <th className="px-4 py-3 text-left text-sm font-medium text-zinc-400">7-day</th>
-            <th className="px-4 py-3 text-left text-sm font-medium text-zinc-400"></th>
+            <th className="px-4 py-3 text-right text-sm font-medium text-zinc-400 tracking-widest">Actions</th>
           </tr>
         </thead>
         <tbody>
