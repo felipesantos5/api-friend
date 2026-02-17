@@ -54,26 +54,27 @@ export function Dashboard() {
   const offlineCount = services.filter((s) => s.status === "offline").length;
 
   return (
-    <div className="min-h-screen bg-black text-zinc-100">
-      <div className="max-w-5xl mx-auto px-6 py-8">
+    <div className="min-h-screen bg-black text-zinc-100 selection:bg-[#217ECE]/30">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-4 sm:py-8">
         {/* Header */}
-        <div className="flex items-center justify-between mb-7 border-b border-white/5 pb-8">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 relative group">
+        <div className="flex flex-col sm:flex-row items-center justify-between mb-8 sm:mb-12 border-b border-white/5 pb-6 sm:pb-8 gap-6">
+          <div className="flex items-center gap-4 self-start sm:self-auto">
+            <div className="w-10 h-10 sm:w-16 sm:h-16 relative group">
               <div className="absolute -inset-1 bg-[#217ECE] rounded-full blur opacity-20 group-hover:opacity-40 transition duration-500"></div>
               <img src={logo} alt="Logo" className="relative w-full h-full object-contain" />
             </div>
             <div>
-              <h1 className="text-xl font-bold tracking-tight uppercase italic flex items-center gap-2">
+              <h1 className="text-lg sm:text-xl font-bold tracking-tight uppercase italic flex items-center gap-2">
                 API <span className="text-[#217ECE]">Friend</span>
               </h1>
-              <p className="text-[10px] text-zinc-500 uppercase tracking-widest">Sentinela Ativa</p>
+              <p className="text-[9px] sm:text-[10px] text-zinc-500 uppercase tracking-widest">Sentinela Ativa</p>
             </div>
           </div>
-          <div className="flex items-center gap-6">
+
+          <div className="flex items-center justify-between w-full sm:w-auto gap-4 sm:gap-6">
             <button
               onClick={() => auth.signOut()}
-              className="group flex items-center gap-2 text-xs uppercase tracking-widest text-zinc-500 hover:text-white transition-colors"
+              className="group flex items-center gap-2 text-[10px] sm:text-xs uppercase tracking-widest text-zinc-500 hover:text-white transition-colors"
             >
               <LogOut size={14} className="group-hover:text-[#217ECE] transition-colors" />
               Sair
@@ -85,21 +86,19 @@ export function Dashboard() {
 
 
         {/* Stats */}
-        <div className="flex gap-4 mb-6">
-          <div className="px-4 py-2 rounded-lg bg-zinc-900 border border-zinc-800 text-sm">
-            <span className="text-zinc-400">Total:</span>{" "}
-            <span className="font-medium">{services.length}</span>
+        <div className="flex flex-wrap gap-2 sm:gap-4 mb-6">
+          <div className="px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg bg-zinc-900 border border-zinc-800 text-xs sm:text-sm">
+            <span className="text-zinc-500 mr-1 sm:mr-2 uppercase tracking-tighter">Total:</span>
+            <span className="font-bold">{services.length}</span>
           </div>
-          <div className="px-4 py-2 rounded-lg bg-zinc-900 border border-zinc-800 text-sm">
-            <span className="text-green-400">Online:</span>{" "}
-            <span className="font-medium">{onlineCount}</span>
+          <div className="px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg bg-zinc-900 border border-zinc-800 text-xs sm:text-sm">
+            <span className="text-green-500 mr-1 sm:mr-2 uppercase tracking-tighter">On:</span>
+            <span className="font-bold text-green-500">{onlineCount}</span>
           </div>
-          {offlineCount > 0 && (
-            <div className="px-4 py-2 rounded-lg bg-red-950/50 border border-red-900/50 text-sm">
-              <span className="text-red-400">Offline:</span>{" "}
-              <span className="font-medium">{offlineCount}</span>
-            </div>
-          )}
+          <div className="px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg bg-red-500/10 border border-red-500/20 text-xs sm:text-sm">
+            <span className="text-red-500 mr-1 sm:mr-2 uppercase tracking-tighter">Off:</span>
+            <span className="font-bold text-red-500">{offlineCount}</span>
+          </div>
         </div>
 
         {/* Table */}

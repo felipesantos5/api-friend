@@ -37,8 +37,8 @@ export function AddServiceDialog({ onAdd }: AddServiceDialogProps) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="bg-primary hover:bg-primary/90 text-white">
-          <Plus className="w-4 h-4 mr-2" />
+        <Button className="bg-primary hover:bg-primary/90 text-white px-3 sm:px-4 py-1.5 sm:py-2 h-auto text-xs sm:text-sm">
+          <Plus className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
           Add Service
         </Button>
       </DialogTrigger>

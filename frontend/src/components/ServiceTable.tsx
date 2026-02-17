@@ -16,8 +16,8 @@ export function ServiceTable({ services, onConfigure }: ServiceTableProps) {
   }
 
   return (
-    <div className="overflow-x-auto rounded-lg border border-zinc-800">
-      <table className="w-full">
+    <div className="overflow-x-auto rounded-lg border border-zinc-800 scrollbar-thin scrollbar-thumb-zinc-800 scrollbar-track-transparent">
+      <table className="w-full min-w-[500px] transition-all">
         <thead>
           <tr className="border-b border-zinc-800 bg-zinc-900/50">
             <th className="px-4 py-3 text-left text-sm font-medium text-zinc-400">Name</th>

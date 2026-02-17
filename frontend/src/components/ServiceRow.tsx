@@ -21,7 +21,7 @@ export function ServiceRow({ service, onConfigure }: ServiceRowProps) {
   return (
     <tr className="border-b border-zinc-800 hover:bg-zinc-900/50">
       <td className="px-4 py-3 font-medium text-base">{service.name}</td>
-      <td className="px-4 py-3 text-sm text-zinc-400 max-w-[300px] truncate">{service.url}</td>
+      <td className="px-4 py-3 text-sm text-zinc-400 max-w-[120px] sm:max-w-[300px] truncate">{service.url}</td>
       <td className="px-4 py-3">
         {service.status === "online" ? (
           <Badge className="bg-green-600/20 text-green-400 border-green-600/30 hover:bg-green-600/20">UP</Badge>
