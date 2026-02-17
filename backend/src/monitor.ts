@@ -3,7 +3,7 @@ import Service from "./models/Service";
 import StatusLog from "./models/StatusLog";
 import { IService } from "./interfaces/IService";
 
-const GRACE_PERIOD_MS = 2 * 60 * 1000; // 2 minutos
+const GRACE_PERIOD_MS = 6 * 60 * 1000; // 6 minutos (tempo máximo de build do Coolify)
 const SNAPSHOT_INTERVAL_MS = 60 * 60 * 1000; // 1 hora
 
 class Monitor {
