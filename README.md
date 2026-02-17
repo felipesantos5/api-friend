@@ -1,4 +1,4 @@
-# 🚀 API Friend - Monitoramento & Auto-Healing com Coolify
+# 🚀 API Friend - Monitoramento & Auto-Healing Coolify
 
 O **API Friend** não é apenas um "status checker". É uma sentinela de elite projetada para desenvolvedores que exigem resiliência total. Enquanto ferramentas comuns apenas avisam que algo caiu, o API Friend resolve o problema disparando redeploys inteligentes via Coolify antes mesmo de você notar a falha.
 
