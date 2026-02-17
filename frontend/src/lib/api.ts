@@ -1,7 +1,7 @@
 import axios from "axios";
 import type { Service, StatusDay, CreateServicePayload, UpdateServicePayload } from "@/types";
 
-const api = axios.create({ baseURL: "/" });
+const api = axios.create({ baseURL: import.meta.env.VITE_API_URL || "/" });
 
 export async function getServices(): Promise<Service[]> {
   const { data } = await api.get<Service[]>("/services");
