@@ -35,7 +35,7 @@ export function AddServiceDialog({ onAdd }: AddServiceDialogProps) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="bg-indigo-600 hover:bg-indigo-700 text-white">
+        <Button className="bg-primary hover:bg-primary/90 text-white">
           <Plus className="w-4 h-4 mr-2" />
           Add Service
         </Button>
@@ -76,7 +76,7 @@ export function AddServiceDialog({ onAdd }: AddServiceDialogProps) {
               className="bg-zinc-800 border-zinc-700"
             />
           </div>
-          <Button type="submit" disabled={loading || !name || !url} className="w-full bg-indigo-600 hover:bg-indigo-700 text-white">
+          <Button type="submit" disabled={loading || !name || !url} className="w-full bg-primary hover:bg-primary/90 text-white">
             {loading ? "Adding..." : "Add Service"}
           </Button>
         </form>

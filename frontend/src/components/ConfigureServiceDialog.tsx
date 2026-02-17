@@ -90,7 +90,7 @@ export function ConfigureServiceDialog({ service, open, onOpenChange, onSave, on
             />
           </div>
           <div className="flex gap-2">
-            <Button type="submit" disabled={loading} className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white">
+            <Button type="submit" disabled={loading} className="flex-1 bg-primary hover:bg-primary/90 text-white">
               {loading ? "Saving..." : "Save"}
             </Button>
             <Button type="button" variant="destructive" disabled={loading} onClick={handleDelete}>

@@ -1,6 +1,7 @@
 import { auth, googleProvider } from "@/lib/firebase";
 import { signInWithPopup } from "firebase/auth";
-import { LogIn } from "lucide-react";
+import { RainbowButton } from "@/components/ui/rainbow-button"
+import logo from "@/assets/logo.png";
 
 export function LoginPage() {
   const handleLogin = async () => {
@@ -12,40 +13,45 @@ export function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#0a0a0b] text-white p-4">
-      <div className="max-w-md w-full space-y-8 bg-[#161618] p-10 rounded-2xl border border-white/5 shadow-2xl relative overflow-hidden group">
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-purple-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+    <div className="min-h-screen flex items-center justify-center bg-black text-white p-4 font-sans selection:bg-[#217ECE]/30">
+      {/* Background subtle glow */}
+      <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-[#217ECE]/5 rounded-full blur-[120px] pointer-events-none" />
 
-        <div className="relative text-center space-y-4">
-          <div className="mx-auto w-16 h-16 bg-gradient-to-tr from-blue-600 to-purple-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20">
-            <LogIn size={32} className="text-white" />
+      <div className="max-w-sm w-full space-y-12 relative z-10">
+        <div className="flex flex-col items-center space-y-6">
+          <div className="relative group">
+            <div className="absolute -inset-1 bg-[#217ECE] rounded-full blur opacity-15 group-hover:opacity-35 transition duration-1000 group-hover:duration-200"></div>
+            <img
+              src={logo}
+              alt="API Friend Logo"
+              className="relative w-44 h-44 object-contain"
+            />
           </div>
 
-          <h1 className="text-3xl font-bold tracking-tight">API Friend</h1>
-          <p className="text-gray-400">
-            A sentinela de elite para seus serviços.
-            Faça login para gerenciar seu monitoramento.
-          </p>
+          <div className="text-center space-y-2">
+            <h1 className="text-4xl font-light tracking-tight text-white uppercase italic">
+              API <span className="font-bold text-[#217ECE]">Friend</span>
+            </h1>
+            <p className="text-zinc-500 text-sm tracking-widest uppercase">
+              Sentinela de Elite
+            </p>
+          </div>
         </div>
 
-        <button
+        <RainbowButton
+          variant="outline"
           onClick={handleLogin}
-          className="relative w-full py-4 px-6 bg-white text-black font-semibold rounded-xl flex items-center justify-center gap-3 transition-all hover:scale-[1.02] active:scale-[0.98] hover:shadow-xl hover:shadow-white/10"
+          className="w-full flex items-center justify-center gap-3 py-6"
         >
           <img
             src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
             alt="Google"
-            className="w-5 h-5"
+            className="w-5 h-5 transition-all"
           />
-          Entrar com Google
-        </button>
-
-        <div className="relative text-center">
-          <p className="text-xs text-gray-500">
-            Ao entrar, você concorda com nossos termos de resiliência total.
-          </p>
-        </div>
+          <span className="uppercase tracking-[0.2em] text-xs font-bold">Acessar Sistema</span>
+        </RainbowButton>
       </div>
     </div>
   );
 }
+
