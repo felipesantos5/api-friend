@@ -14,7 +14,7 @@ export function AddServiceDialog({ onAdd }: AddServiceDialogProps) {
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [url, setUrl] = useState("");
-  const [interval, setInterval] = useState("3000");
+  const [interval, setInterval] = useState("1");
   const [loading, setLoading] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
@@ -22,10 +22,12 @@ export function AddServiceDialog({ onAdd }: AddServiceDialogProps) {
     if (!name || !url) return;
     setLoading(true);
     try {
-      await onAdd({ name, url, checkInterval: Number(interval) || 3000 });
+      // Convert minutes to milliseconds
+      const checkIntervalMs = (Number(interval) || 1) * 60000;
+      await onAdd({ name, url, checkInterval: checkIntervalMs });
       setName("");
       setUrl("");
-      setInterval("3000");
+      setInterval("1");
       setOpen(false);
     } finally {
       setLoading(false);
@@ -66,13 +68,14 @@ export function AddServiceDialog({ onAdd }: AddServiceDialogProps) {
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="interval">Check Interval (ms)</Label>
+            <Label htmlFor="interval">Check Interval (minutes)</Label>
             <Input
               id="interval"
               type="number"
+              min="1"
               value={interval}
               onChange={(e) => setInterval(e.target.value)}
-              placeholder="3000"
+              placeholder="1"
               className="bg-zinc-800 border-zinc-700"
             />
           </div>

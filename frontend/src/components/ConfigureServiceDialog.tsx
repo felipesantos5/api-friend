@@ -17,6 +17,7 @@ export function ConfigureServiceDialog({ service, open, onOpenChange, onSave, on
   const [discordWebhook, setDiscordWebhook] = useState("");
   const [coolifyWebhook, setCoolifyWebhook] = useState("");
   const [coolifyToken, setCoolifyToken] = useState("");
+  const [checkInterval, setCheckInterval] = useState("1");
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -24,6 +25,8 @@ export function ConfigureServiceDialog({ service, open, onOpenChange, onSave, on
       setDiscordWebhook(service.discordWebhook);
       setCoolifyWebhook(service.coolifyWebhook);
       setCoolifyToken(service.coolifyToken);
+      // Convert milliseconds to minutes for display
+      setCheckInterval(Math.max(1, Math.round(service.checkInterval / 60000)).toString());
     }
   }, [service]);
 
@@ -32,7 +35,14 @@ export function ConfigureServiceDialog({ service, open, onOpenChange, onSave, on
     if (!service) return;
     setLoading(true);
     try {
-      await onSave(service._id, { discordWebhook, coolifyWebhook, coolifyToken });
+      // Convert minutes to milliseconds
+      const checkIntervalMs = (Number(checkInterval) || 1) * 60000;
+      await onSave(service._id, {
+        discordWebhook,
+        coolifyWebhook,
+        coolifyToken,
+        checkInterval: checkIntervalMs
+      });
       onOpenChange(false);
     } finally {
       setLoading(false);
@@ -65,6 +75,18 @@ export function ConfigureServiceDialog({ service, open, onOpenChange, onSave, on
               value={discordWebhook}
               onChange={(e) => setDiscordWebhook(e.target.value)}
               placeholder="https://discord.com/api/webhooks/..."
+              className="bg-zinc-800 border-zinc-700"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="interval">Check Interval (minutes)</Label>
+            <Input
+              id="interval"
+              type="number"
+              min="1"
+              value={checkInterval}
+              onChange={(e) => setCheckInterval(e.target.value)}
+              placeholder="1"
               className="bg-zinc-800 border-zinc-700"
             />
           </div>
