@@ -46,46 +46,14 @@ As mensagens não são simples textos. São embeds formatados que mostram:
 
 ---
 
-## 🚀 Como Rodar o Projeto
+## 🌍 Acesse Agora
 
-### Pré-requisitos
-- Node.js (v18+)
-- MongoDB (Local ou Atlas)
-- Yarn ou NPM
+A sentinela já está em operação! Você não precisa configurar nada localmente para começar a usar:
 
-### Configuração
+🔗 **URL:** [https://api-friend.vercel.app/](https://api-friend.vercel.app/)
 
-1. **Clone o repositório:**
-   ```bash
-   git clone https://github.com/felipesantos5/api-friend.git
-   cd api-friend
-   ```
+🛡️ **Acesso:** Basta fazer login com sua conta do **Google**. Seus serviços monitorados ficarão vinculados exclusivamente ao seu perfil, garantindo total privacidade e controle.
 
-2. **Backend:**
-   ```bash
-   cd backend
-   cp .env.example .env # Configure suas variáveis (MONGO_URI, DISCORD_WEBHOOK, etc)
-   yarn install
-   yarn dev
-   ```
-
-3. **Frontend:**
-   ```bash
-   cd ../frontend
-   cp .env.example .env # Configure VITE_API_URL
-   yarn install
-   yarn dev
-   ```
-
----
-
-## 🐳 Docker (Opcional)
-
-O projeto está pronto para rodar em containers:
-
-```bash
-docker-compose up -d
-```
 
 ---
 
