@@ -1,4 +1,5 @@
 export interface Service {
+  userId: string;
   _id: string;
   name: string;
   url: string;

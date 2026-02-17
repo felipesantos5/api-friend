@@ -1,12 +1,23 @@
 import { Router, Request, Response } from "express";
 import StatusLog from "../models/StatusLog";
+import Service from "../models/Service";
+import { authenticate, AuthRequest } from "../middleware/auth";
 
 const router = Router();
 
 // GET /status-logs/:serviceId - Retorna ultimos 7 dias agregados por dia
-router.get("/:serviceId", async (req: Request, res: Response) => {
+router.get("/:serviceId", authenticate, async (req: AuthRequest, res: Response) => {
   try {
     const { serviceId } = req.params;
+    const userId = req.user?.uid;
+
+    // Verificar se o serviço pertence ao usuário
+    const service = await Service.findOne({ _id: serviceId, userId });
+    if (!service) {
+      res.status(404).json({ error: "Servico nao encontrado ou acesso negado" });
+      return;
+    }
+
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
     sevenDaysAgo.setHours(0, 0, 0, 0);

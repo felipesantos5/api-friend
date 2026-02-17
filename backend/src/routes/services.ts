@@ -1,13 +1,23 @@
 import { Router, Request, Response } from "express";
 import Service from "../models/Service";
 import { monitor } from "../monitor";
+import { authenticate, AuthRequest } from "../middleware/auth";
 
 const router = Router();
 
+// Aplicar autenticação em todas as rotas de serviços
+router.use(authenticate);
+
 // POST /services - Cadastrar nova API para monitoramento
-router.post("/", async (req: Request, res: Response) => {
+router.post("/", async (req: AuthRequest, res: Response) => {
   try {
     const { name, url, checkInterval, discordWebhook, coolifyWebhook, coolifyToken } = req.body;
+    const userId = req.user?.uid;
+
+    if (!userId) {
+      res.status(401).json({ error: "Usuário não identificado" });
+      return;
+    }
 
     if (!name || !url) {
       res.status(400).json({ error: "name e url sao obrigatorios" });
@@ -15,6 +25,7 @@ router.post("/", async (req: Request, res: Response) => {
     }
 
     const service = await Service.create({
+      userId,
       name,
       url,
       checkInterval: checkInterval || 3000,
@@ -23,7 +34,7 @@ router.post("/", async (req: Request, res: Response) => {
       coolifyToken: coolifyToken || "",
     });
 
-    console.log(`[API] Servico cadastrado: ${service.name} (${service.url})`);
+    console.log(`[API] Servico cadastrado: ${service.name} (${service.url}) pelo usuario ${userId}`);
 
     // Iniciar monitoramento imediatamente
     monitor.startWatching(service);
@@ -35,10 +46,11 @@ router.post("/", async (req: Request, res: Response) => {
   }
 });
 
-// GET /services - Listar APIs monitoradas
-router.get("/", async (_req: Request, res: Response) => {
+// GET /services - Listar APIs monitoradas do usuário
+router.get("/", async (req: AuthRequest, res: Response) => {
   try {
-    const services = await Service.find();
+    const userId = req.user?.uid;
+    const services = await Service.find({ userId });
     res.json(services);
   } catch (err) {
     console.error("[API] Erro ao listar servicos:", err);
@@ -46,12 +58,14 @@ router.get("/", async (_req: Request, res: Response) => {
   }
 });
 
-// GET /services/:id - Buscar servico por ID
-router.get("/:id", async (req: Request, res: Response) => {
+// GET /services/:id - Buscar servico por ID (se pertencer ao usuário)
+router.get("/:id", async (req: AuthRequest, res: Response) => {
   try {
-    const service = await Service.findById(req.params.id);
+    const userId = req.user?.uid;
+    const service = await Service.findOne({ _id: req.params.id, userId });
+    
     if (!service) {
-      res.status(404).json({ error: "Servico nao encontrado" });
+      res.status(404).json({ error: "Servico nao encontrado ou acesso negado" });
       return;
     }
     res.json(service);
@@ -62,13 +76,14 @@ router.get("/:id", async (req: Request, res: Response) => {
 });
 
 // PUT /services/:id - Atualizar servico
-router.put("/:id", async (req: Request, res: Response) => {
+router.put("/:id", async (req: AuthRequest, res: Response) => {
   try {
     const { name, url, checkInterval, discordWebhook, coolifyWebhook, coolifyToken } = req.body;
+    const userId = req.user?.uid;
 
-    const service = await Service.findById(req.params.id);
+    const service = await Service.findOne({ _id: req.params.id, userId });
     if (!service) {
-      res.status(404).json({ error: "Servico nao encontrado" });
+      res.status(404).json({ error: "Servico nao encontrado ou acesso negado" });
       return;
     }
 
@@ -97,18 +112,20 @@ router.put("/:id", async (req: Request, res: Response) => {
 });
 
 // DELETE /services/:id - Remover monitoramento
-router.delete("/:id", async (req: Request, res: Response) => {
+router.delete("/:id", async (req: AuthRequest, res: Response) => {
   try {
-    const service = await Service.findByIdAndDelete(req.params.id);
+    const userId = req.user?.uid;
+    const service = await Service.findOneAndDelete({ _id: req.params.id, userId });
+    
     if (!service) {
-      res.status(404).json({ error: "Servico nao encontrado" });
+      res.status(404).json({ error: "Servico nao encontrado ou acesso negado" });
       return;
     }
 
     // Parar monitoramento
     monitor.stopWatching(service._id.toString());
 
-    console.log(`[API] Servico removido: ${service.name}`);
+    console.log(`[API] Servico removido: ${service.name} pelo usuario ${userId}`);
     res.json({ message: "Servico removido com sucesso" });
   } catch (err) {
     console.error("[API] Erro ao remover servico:", err);
@@ -117,3 +134,4 @@ router.delete("/:id", async (req: Request, res: Response) => {
 });
 
 export default router;
+

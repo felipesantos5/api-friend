@@ -1,15 +1,18 @@
 import { useState, useEffect, useCallback } from "react";
-import { Activity } from "lucide-react";
+import { Activity, LogOut } from "lucide-react";
 import { ServiceTable } from "@/components/ServiceTable";
 import { AddServiceDialog } from "@/components/AddServiceDialog";
 import { ConfigureServiceDialog } from "@/components/ConfigureServiceDialog";
 import { getServices, createService, updateService, deleteService } from "@/lib/api";
 import type { Service, CreateServicePayload, UpdateServicePayload } from "@/types";
+import { auth } from "@/lib/firebase";
 
 export function Dashboard() {
   const [services, setServices] = useState<Service[]>([]);
   const [configuring, setConfiguring] = useState<Service | null>(null);
   const [configOpen, setConfigOpen] = useState(false);
+
+  // ... (rest of the logic remains same)
 
   const fetchServices = useCallback(async () => {
     try {
@@ -58,8 +61,18 @@ export function Dashboard() {
             <Activity className="w-7 h-7 text-indigo-500" />
             <h1 className="text-2xl font-bold">API Friend</h1>
           </div>
-          <AddServiceDialog onAdd={handleAdd} />
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => auth.signOut()}
+              className="p-2 text-zinc-400 hover:text-white transition-colors"
+              title="Sair"
+            >
+              <LogOut size={20} />
+            </button>
+            <AddServiceDialog onAdd={handleAdd} />
+          </div>
         </div>
+
 
         {/* Stats */}
         <div className="flex gap-4 mb-6">

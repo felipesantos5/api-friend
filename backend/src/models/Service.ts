@@ -3,6 +3,7 @@ import { IService } from "../interfaces/IService";
 
 const ServiceSchema = new Schema<IService>(
   {
+    userId: { type: String, required: true },
     name: { type: String, required: true },
     url: { type: String, required: true },
     status: { type: String, enum: ["online", "offline"], default: "online" },

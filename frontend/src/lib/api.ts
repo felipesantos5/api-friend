@@ -1,7 +1,20 @@
 import axios from "axios";
 import type { Service, StatusDay, CreateServicePayload, UpdateServicePayload } from "@/types";
 
+import { auth } from "./firebase";
+
 const api = axios.create({ baseURL: import.meta.env.VITE_API_URL || "/" });
+
+// Adicionar Token em todas as requisições
+api.interceptors.request.use(async (config) => {
+  const user = auth.currentUser;
+  if (user) {
+    const token = await user.getIdToken();
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
 
 export async function getServices(): Promise<Service[]> {
   const { data } = await api.get<Service[]>("/services");
