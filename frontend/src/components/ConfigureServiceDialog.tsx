@@ -128,7 +128,7 @@ export function ConfigureServiceDialog({ service, open, onOpenChange, onSave, on
               <div>
                 <p className="text-[11px] font-medium text-zinc-300 uppercase tracking-wider mb-1">IP do Servidor (API)</p>
                 <code className="text-[13px] text-[#217ECE] font-mono bg-zinc-950 px-2 py-0.5 rounded border border-white/5">
-                  179.160.219.190
+                  147.93.132.28
                 </code>
                 <p className="text-[10px] text-zinc-500 mt-2 leading-relaxed">
                   Adicione este IP na seção <span className="text-zinc-400 font-medium">"Whitelisted IPs"</span> do seu Webhook na Coolify (ou use <code className="text-zinc-400">0.0.0.0</code> se quiser permitir qualquer origem, embora seja menos seguro).
