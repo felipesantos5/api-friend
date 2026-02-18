@@ -13,9 +13,14 @@ interface ServiceRowProps {
 
 export function ServiceRow({ service, onConfigure }: ServiceRowProps) {
   const [days, setDays] = useState<StatusDay[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    getStatusLogs(service._id).then(setDays).catch(() => { });
+    setIsLoading(true);
+    getStatusLogs(service._id)
+      .then(setDays)
+      .catch(() => { })
+      .finally(() => setIsLoading(false));
   }, [service._id, service.status]);
 
   return (
@@ -30,7 +35,15 @@ export function ServiceRow({ service, onConfigure }: ServiceRowProps) {
         )}
       </td>
       <td className="px-4 py-3 text-center">
-        <UptimeChart days={days} />
+        {isLoading ? (
+          <div className="flex items-center justify-center gap-[3px] animate-pulse">
+            {[...Array(7)].map((_, i) => (
+              <div key={i} className="w-[8px] h-[24px] bg-zinc-800 rounded-[2px]" />
+            ))}
+          </div>
+        ) : (
+          <UptimeChart days={days} currentStatus={service.status} />
+        )}
       </td>
       <td className="px-4 py-3 text-right">
         <Button variant="ghost" size="sm" onClick={() => onConfigure(service)} className="text-zinc-400 hover:text-white">

@@ -60,7 +60,7 @@ export function Dashboard() {
     <div className="min-h-screen bg-black text-zinc-100 selection:bg-[#217ECE]/30">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 py-4 sm:py-8">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row items-center justify-between mb-8 sm:mb-12 border-b border-white/5 pb-6 sm:pb-8 gap-6">
+        <div className="flex flex-col sm:flex-row items-center justify-between mb-8 sm:mb-12 border-b border-white/5 pb-6 gap-6">
           <div className="flex items-center gap-4 self-start sm:self-auto">
             <div className="w-10 h-10 sm:w-16 sm:h-16 relative group">
               <div className="absolute -inset-1 bg-[#217ECE] rounded-full blur opacity-20 group-hover:opacity-40 transition duration-500"></div>

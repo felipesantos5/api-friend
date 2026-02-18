@@ -2,9 +2,10 @@ import type { StatusDay } from "@/types";
 
 interface UptimeChartProps {
   days: StatusDay[];
+  currentStatus?: "online" | "offline";
 }
 
-export function UptimeChart({ days }: UptimeChartProps) {
+export function UptimeChart({ days, currentStatus }: UptimeChartProps) {
   const barWidth = 8;
   const barGap = 3;
   const height = 24;
@@ -13,9 +14,12 @@ export function UptimeChart({ days }: UptimeChartProps) {
   return (
     <svg width={totalWidth} height={height} className="inline-block">
       {days.map((day, i) => {
+        const isLast = i === days.length - 1;
         let fill = "#3f3f46"; // zinc-700 (no data)
-        if (day.dominant === "online") fill = "#22c55e"; // green-500
-        else if (day.dominant === "offline") fill = "#ef4444"; // red-500
+        const status = (isLast && !day.dominant) ? currentStatus : day.dominant;
+
+        if (status === "online") fill = "#22c55e"; // green-500
+        else if (status === "offline") fill = "#ef4444"; // red-500
 
         return (
           <rect
