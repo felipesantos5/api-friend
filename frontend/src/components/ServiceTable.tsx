@@ -33,7 +33,7 @@ export function ServiceTable({ services, isLoading, onConfigure }: ServiceTableP
             <th className="px-4 py-3 text-left text-sm font-medium text-zinc-400">Name</th>
             <th className="px-4 py-3 text-left text-sm font-medium text-zinc-400">URL</th>
             <th className="px-4 py-3 text-left text-sm font-medium text-zinc-400">Status</th>
-            <th className="px-4 py-3 text-left text-sm font-medium text-zinc-400 text-center">7-day</th>
+            <th className="px-4 py-3 text-sm font-medium text-zinc-400 text-center">7-day</th>
             <th className="px-4 py-3 text-right text-sm font-medium text-zinc-400 tracking-widest">Actions</th>
           </tr>
         </thead>
