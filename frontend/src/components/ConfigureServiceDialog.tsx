@@ -3,6 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Info, Globe } from "lucide-react";
 import type { Service, UpdateServicePayload } from "@/types";
 
 interface ConfigureServiceDialogProps {
@@ -91,7 +92,16 @@ export function ConfigureServiceDialog({ service, open, onOpenChange, onSave, on
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="coolify">Coolify Webhook</Label>
+            <div className="flex items-center gap-2">
+              <Label htmlFor="coolify">Coolify Webhook</Label>
+              <div className="group relative">
+                <Info size={14} className="text-zinc-500 cursor-help hover:text-[#217ECE] transition-colors" />
+                <div className="absolute left-0 bottom-full mb-2 w-64 p-2 bg-zinc-800 text-[10px] text-zinc-300 rounded shadow-xl opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity border border-zinc-700 z-50">
+                  Para segurança, a Coolify exige que o IP do servidor que faz a requisição seja autorizado.
+                  Use o IP abaixo nas configurações do seu Webhook na Coolify.
+                </div>
+              </div>
+            </div>
             <Input
               id="coolify"
               value={coolifyWebhook}
@@ -110,6 +120,21 @@ export function ConfigureServiceDialog({ service, open, onOpenChange, onSave, on
               placeholder="Bearer token"
               className="bg-zinc-800 border-zinc-700"
             />
+          </div>
+
+          <div className="bg-blue-500/5 border border-blue-500/20 rounded-lg p-3">
+            <div className="flex items-start gap-3">
+              <Globe className="w-4 h-4 text-[#217ECE] mt-0.5" />
+              <div>
+                <p className="text-[11px] font-medium text-zinc-300 uppercase tracking-wider mb-1">IP do Servidor (API)</p>
+                <code className="text-[13px] text-[#217ECE] font-mono bg-zinc-950 px-2 py-0.5 rounded border border-white/5">
+                  179.160.219.190
+                </code>
+                <p className="text-[10px] text-zinc-500 mt-2 leading-relaxed">
+                  Adicione este IP na seção <span className="text-zinc-400 font-medium">"Whitelisted IPs"</span> do seu Webhook na Coolify (ou use <code className="text-zinc-400">0.0.0.0</code> se quiser permitir qualquer origem, embora seja menos seguro).
+                </p>
+              </div>
+            </div>
           </div>
           <div className="flex gap-2">
             <Button type="submit" disabled={loading} className="flex-1 bg-primary hover:bg-primary/90 text-white">

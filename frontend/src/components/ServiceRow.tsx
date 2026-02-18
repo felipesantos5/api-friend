@@ -29,7 +29,7 @@ export function ServiceRow({ service, onConfigure }: ServiceRowProps) {
           <Badge className="bg-red-600/20 text-red-400 border-red-600/30 hover:bg-red-600/20">DOWN</Badge>
         )}
       </td>
-      <td className="px-4 py-3">
+      <td className="px-4 py-3 text-center">
         <UptimeChart days={days} />
       </td>
       <td className="px-4 py-3 text-right">
