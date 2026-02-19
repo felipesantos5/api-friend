@@ -53,7 +53,15 @@ if (admin.apps.length === 0) {
 
   if (projectId && clientEmail && rawPrivateKey) {
     try {
-      const privateKey = sanitizePrivateKey(rawPrivateKey);
+      let privateKey = rawPrivateKey;
+
+      // Se a chave não parecer um PEM (não começa com ---), tenta decodificar de Base64
+      if (!privateKey.trim().startsWith("---")) {
+        console.log("📦 Detectada chave em Base64. Decodificando...");
+        privateKey = Buffer.from(privateKey, 'base64').toString('utf-8');
+      }
+
+      privateKey = sanitizePrivateKey(privateKey);
 
       // Validação mínima do formato PEM
       if (
