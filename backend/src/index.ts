@@ -19,6 +19,16 @@ app.use(cors());
 app.use(express.json());
 
 // Rotas da API
+app.get("/health", (_req, res) => {
+  const dbStatus = mongoose.connection.readyState === 1 ? "UP" : "DOWN";
+  res.status(200).json({
+    status: "UP",
+    database: dbStatus,
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
+  });
+});
+
 app.use("/services", serviceRoutes);
 app.use("/status-logs", statusLogRoutes);
 
