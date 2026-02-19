@@ -3,7 +3,7 @@ import Service from "./models/Service";
 import StatusLog from "./models/StatusLog";
 import { IService } from "./interfaces/IService";
 
-const GRACE_PERIOD_MS = 6 * 60 * 1000; // 6 minutos (tempo máximo de build do Coolify)
+const GRACE_PERIOD_MS = 10 * 60 * 1000; // 10 minutos (tempo de segurança para deploy)
 const SNAPSHOT_INTERVAL_MS = 60 * 60 * 1000; // 1 hora
 
 class Monitor {
@@ -14,6 +14,14 @@ class Monitor {
    * Inicia o monitoramento de todos os servicos cadastrados no banco
    */
   async startAll(): Promise<void> {
+    // 100% Seguro: Resetar qualquer flag de deploy que tenha ficado "presa" por causa de um restart do servidor
+    try {
+      await Service.updateMany({}, { isDeploying: false });
+      console.log("[MONITOR] Flags de deploy resetadas para segurança");
+    } catch (err) {
+      console.error("[MONITOR] Erro ao resetar flags de deploy:", err);
+    }
+
     const services = await Service.find();
     console.log(`[MONITOR] Iniciando monitoramento de ${services.length} servico(s)`);
 
@@ -60,73 +68,140 @@ class Monitor {
 
     console.log(`[MONITOR] Watchdog ativo para: ${service.name} | Intervalo: ${service.checkInterval}ms`);
 
-    const interval = setInterval(async () => {
+    const runLoop = async () => {
       await this.checkService(id);
-    }, service.checkInterval || 3000);
+      
+      const currentService = await Service.findById(id);
+      if (currentService) {
+        const timeout = setTimeout(runLoop, currentService.checkInterval || 3000);
+        this.intervals.set(id, timeout as any);
+      }
+    };
 
-    this.intervals.set(id, interval);
+    const initialTimeout = setTimeout(runLoop, service.checkInterval || 3000);
+    this.intervals.set(id, initialTimeout as any);
   }
 
   /**
    * Para o monitoramento de um servico
    */
   stopWatching(id: string): void {
-    const interval = this.intervals.get(id);
-    if (interval) {
-      clearInterval(interval);
+    const timeout = this.intervals.get(id);
+    if (timeout) {
+      clearTimeout(timeout);
       this.intervals.delete(id);
       console.log(`[MONITOR] Watchdog parado para ID: ${id}`);
     }
   }
 
   /**
-   * Verifica a saude de um servico
+   * Realiza a chamada HTTP de health check
+   */
+  private async performHealthCheck(url: string): Promise<boolean> {
+    try {
+      const response = await axios.get(url, { timeout: 10000 });
+      return response.status === 200;
+    } catch (err) {
+      return false;
+    }
+  }
+
+  /**
+   * Lida com o sucesso de um check (API online)
+   */
+  private async handleSuccess(service: IService): Promise<void> {
+    let changed = false;
+
+    if (service.status === "offline") {
+      console.log(`[MONITOR] ✅ ${service.name} voltou ao ar!`);
+      service.status = "online";
+      changed = true;
+
+      // Registrar transicao no historico
+      await StatusLog.create({
+        serviceId: service._id.toString(),
+        status: "online",
+        checkedAt: new Date(),
+      });
+
+      // Notificar Discord que voltou
+      await this.sendDiscordNotification(service, true);
+    }
+
+    // Se ele voltou, podemos liberar o isDeploying mais cedo (opcional, mas seguro)
+    // No seu caso, vamos manter o isDeploying como bloqueio por um tempo se quiser,
+    // mas se o deploy já teve sucesso, o ideal é limpar para a próxima falha.
+    if (service.isDeploying) {
+       service.isDeploying = false;
+       changed = true;
+    }
+
+    if (changed) {
+      await service.save();
+    }
+  }
+
+  /**
+   * Verifica a saude de um servico com logica de retentativa
    */
   private async checkService(id: string): Promise<void> {
     try {
       const service = await Service.findById(id);
       if (!service) {
-        console.log(`[MONITOR] Servico ${id} nao encontrado, parando watchdog`);
         this.stopWatching(id);
         return;
       }
 
-      try {
-        const response = await axios.get(service.url, { timeout: 10000 });
-
-        if (response.status === 200) {
-          // API esta online
-          if (service.status === "offline") {
-            console.log(`[MONITOR] ✅ ${service.name} voltou ao ar!`);
-            service.status = "online";
-            await service.save();
-
-            // Registrar transicao no historico
-            await StatusLog.create({
-              serviceId: id,
-              status: "online",
-              checkedAt: new Date(),
-            });
-
-            // Notificar Discord que voltou
-            await this.sendDiscordNotification(service, true);
-          }
-        } else {
-          await this.handleFailure(service);
+      // Se o serviço já está em processo de deploy, fazemos apenas uma checagem simples.
+      // Não precisamos da lógica de retentativa (30s + 30s) enquanto ele está subindo.
+      if (service.isDeploying) {
+        const isOnline = await this.performHealthCheck(service.url);
+        if (isOnline) {
+          await this.handleSuccess(service);
         }
-      } catch {
-        await this.handleFailure(service);
+        return;
       }
+
+      // 1ª Tentativa
+      const isOnline = await this.performHealthCheck(service.url);
+
+      if (isOnline) {
+        await this.handleSuccess(service);
+        return;
+      }
+
+      // Se falhou a primeira vez, aguarda 30 segundos e tenta de novo
+      console.log(`[MONITOR] ⚠️ Falha detectada em ${service.name}. Aguardando 30s para 2ª tentativa...`);
+      await new Promise(resolve => setTimeout(resolve, 30000));
+
+      const isOnlineRetry1 = await this.performHealthCheck(service.url);
+      if (isOnlineRetry1) {
+        await this.handleSuccess(service);
+        return;
+      }
+
+      // Se falhou a segunda vez, aguarda mais 30 segundos e tenta a última vez
+      console.log(`[MONITOR] ⚠️ Segunda falha em ${service.name}. Aguardando mais 30s para tentativa final...`);
+      await new Promise(resolve => setTimeout(resolve, 30000));
+
+      const isOnlineRetry2 = await this.performHealthCheck(service.url);
+      if (isOnlineRetry2) {
+        await this.handleSuccess(service);
+        return;
+      }
+
+      // Se falhou as 3 vezes (inicial + 2 retries), aí sim marca como offline e age
+      await this.handleFailure(service);
     } catch (err) {
       console.error(`[MONITOR] Erro critico ao verificar servico ${id}:`, err);
     }
   }
 
   /**
-   * Lida com falha de um servico
+   * Lida com falha confirmada de um servico
    */
   private async handleFailure(service: IService): Promise<void> {
-    console.log(`[MONITOR] ❌ ${service.name} esta OFFLINE! (${service.url})`);
+    console.log(`[MONITOR] ❌ ${service.name} confirmado OFFLINE após retentativas! (${service.url})`);
 
     const wasOnline = service.status === "online";
     service.status = "offline";
@@ -154,7 +229,7 @@ class Monitor {
       await this.triggerCoolifyRedeploy(service);
 
       // Grace period - aguardar antes de permitir novo redeploy
-      console.log(`[MONITOR] ⏳ Grace period de ${GRACE_PERIOD_MS / 1000}s para: ${service.name}`);
+      console.log(`[MONITOR] ⏳ Grace period de ${GRACE_PERIOD_MS / 1000 / 60} minutos para: ${service.name}`);
       setTimeout(async () => {
         try {
           const freshService = await Service.findById(service._id);
@@ -172,6 +247,7 @@ class Monitor {
       console.log(`[MONITOR] ⏳ ${service.name} ja esta em deploy, aguardando grace period...`);
     }
   }
+
 
   /**
    * Envia notificacao para o Discord via webhook
