@@ -6,12 +6,20 @@ import fs from "fs";
 // Inicializar Firebase Admin
 const serviceAccountPath = path.join(__dirname, "../../serviceAccountKey.json");
 
-if (fs.existsSync(serviceAccountPath)) {
+if (process.env.FIREBASE_PROJECT_ID && process.env.FIREBASE_CLIENT_EMAIL && process.env.FIREBASE_PRIVATE_KEY) {
+  admin.initializeApp({
+    credential: admin.credential.cert({
+      projectId: process.env.FIREBASE_PROJECT_ID,
+      clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+      privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'),
+    }),
+  });
+} else if (fs.existsSync(serviceAccountPath)) {
   admin.initializeApp({
     credential: admin.credential.cert(serviceAccountPath),
   });
 } else {
-  console.warn("⚠️ Arquivo serviceAccountKey.json não encontrado. Auth do Firebase desativada para desenvolvimento local.");
+  console.warn("⚠️ Firebase Admin não configurado (env vars ou serviceAccountKey.json ausentes).");
 }
 
 export interface AuthRequest extends Request {
@@ -28,18 +36,11 @@ export const authenticate = async (req: AuthRequest, res: Response, next: NextFu
   const token = authHeader.split("Bearer ")[1];
 
   try {
-    if (!fs.existsSync(serviceAccountPath)) {
-      // Modo de desenvolvimento sem Firebase se o arquivo for omitido (apenas se você quiser facilitar o dev local)
-      // Se preferir segurança total sempre, remova esse 'if'
-      (req as any).user = { uid: "dev-user-id" };
-      return next();
-    }
-
     const decodedToken = await admin.auth().verifyIdToken(token);
     req.user = decodedToken;
     next();
   } catch (error) {
     console.error("Erro ao validar token:", error);
-    return res.status(401).json({ error: "Token inválido ou expirado." });
+    return res.status(401).json({ error: "Sessão inválida ou expirada. Faça login novamente." });
   }
 };
