@@ -52,18 +52,9 @@ As mensagens não são simples textos. São embeds formatados que mostram:
 
 A sentinela já está em operação! Você não precisa configurar nada localmente para começar a usar:
 
-🔗 **URL:** [https://api-friend.vercel.app/](https://api-friend.vercel.app/)
+🔗 **URL:** [https://api-friend.vercel.app](https://api-friend.vercel.app/)
 
 🛡️ **Acesso:** Basta fazer login com sua conta do **Google**. Seus serviços monitorados ficarão vinculados exclusivamente ao seu perfil, garantindo total privacidade e controle.
-
-
----
-
-## 📄 Licença
-
-Distribuído sob a licença ISC. Veja `LICENSE` para mais informações.
-
----
 
 <p align="center">
   Desenvolvido com ⚡ por <a href="https://github.com/felipesantos5">Felipe Santos</a>
