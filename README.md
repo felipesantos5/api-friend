@@ -4,6 +4,8 @@ O **API Friend** não é apenas um "status checker". É uma sentinela de elite p
 
 Este é um projeto com objetivos absurdos: eliminar o downtime humano através de automação reativa.
 
+![Dashboard](./dashboard.jpg)
+
 ---
 
 ## 🛠️ Stack Tecnológica
