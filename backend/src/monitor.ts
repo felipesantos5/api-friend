@@ -5,6 +5,7 @@ import { IService } from "./interfaces/IService";
 
 const GRACE_PERIOD_MS = 10 * 60 * 1000; // 10 minutos (tempo de segurança para deploy)
 const SNAPSHOT_INTERVAL_MS = 60 * 60 * 1000; // 1 hora
+const RETRY_DELAY_MS = 2 * 60 * 1000; // 2 minutos entre tentativas de queda
 
 class Monitor {
   private intervals: Map<string, NodeJS.Timeout> = new Map();
@@ -153,7 +154,6 @@ class Monitor {
       }
 
       // Se o serviço já está em processo de deploy, fazemos apenas uma checagem simples.
-      // Não precisamos da lógica de retentativa (30s + 30s) enquanto ele está subindo.
       if (service.isDeploying) {
         const isOnline = await this.performHealthCheck(service.url);
         if (isOnline) {
@@ -164,33 +164,38 @@ class Monitor {
 
       // 1ª Tentativa
       const isOnline = await this.performHealthCheck(service.url);
-
       if (isOnline) {
         await this.handleSuccess(service);
         return;
       }
 
-      // Se falhou a primeira vez, aguarda 30 segundos e tenta de novo
-      console.log(`[MONITOR] ⚠️ Falha detectada em ${service.name}. Aguardando 30s para 2ª tentativa...`);
-      await new Promise(resolve => setTimeout(resolve, 30000));
+      // Se falhou a primeira vez, avisa no Discord (1/3) e aguarda 2 min
+      console.log(`[MONITOR] ⚠️ Falha detectada em ${service.name}. Tentativa 1/3 enviando para Discord...`);
+      await this.sendDiscordNotification(service, false, 1);
+      await new Promise(resolve => setTimeout(resolve, RETRY_DELAY_MS));
 
+      // 2ª Tentativa
       const isOnlineRetry1 = await this.performHealthCheck(service.url);
       if (isOnlineRetry1) {
+        await this.sendDiscordNotification(service, true);
         await this.handleSuccess(service);
         return;
       }
 
-      // Se falhou a segunda vez, aguarda mais 30 segundos e tenta a última vez
-      console.log(`[MONITOR] ⚠️ Segunda falha em ${service.name}. Aguardando mais 30s para tentativa final...`);
-      await new Promise(resolve => setTimeout(resolve, 30000));
+      // Se falhou a segunda vez, avisa no Discord (2/3) e aguarda 2 min
+      console.log(`[MONITOR] ⚠️ Segunda falha em ${service.name}. Tentativa 2/3 enviando para Discord...`);
+      await this.sendDiscordNotification(service, false, 2);
+      await new Promise(resolve => setTimeout(resolve, RETRY_DELAY_MS));
 
+      // 3ª Tentativa
       const isOnlineRetry2 = await this.performHealthCheck(service.url);
       if (isOnlineRetry2) {
+        await this.sendDiscordNotification(service, true);
         await this.handleSuccess(service);
         return;
       }
 
-      // Se falhou as 3 vezes (inicial + 2 retries), aí sim marca como offline e age
+      // Se falhou as 3 vezes, aí sim marca como offline e age (handleFailure enviará o 3/3)
       await this.handleFailure(service);
     } catch (err) {
       console.error(`[MONITOR] Erro critico ao verificar servico ${id}:`, err);
@@ -222,8 +227,8 @@ class Monitor {
 
       console.log(`[MONITOR] 🔄 Iniciando processo de recuperacao para: ${service.name}`);
 
-      // Enviar notificacao Discord
-      await this.sendDiscordNotification(service, false);
+      // Enviar notificacao Discord (Tentativa 3/3)
+      await this.sendDiscordNotification(service, false, 3);
 
       // Disparar redeploy no Coolify
       await this.triggerCoolifyRedeploy(service);
@@ -252,38 +257,54 @@ class Monitor {
   /**
    * Envia notificacao para o Discord via webhook
    */
-  private async sendDiscordNotification(service: IService, isRecovery: boolean): Promise<void> {
+  private async sendDiscordNotification(service: IService, isRecovery: boolean, attempt?: number): Promise<void> {
     if (!service.discordWebhook) {
       console.log(`[MONITOR] Sem webhook Discord configurado para: ${service.name}`);
       return;
     }
 
-    const embed = isRecovery
-      ? {
-          title: "✅ Servico Recuperado",
-          description: `**${service.name}** voltou ao ar!`,
-          color: 0x00ff00,
-          fields: [
-            { name: "URL", value: service.url, inline: true },
-            { name: "Status", value: "Online", inline: true },
-          ],
-          timestamp: new Date().toISOString(),
-        }
-      : {
-          title: "🚨 Servico Offline",
-          description: `**${service.name}** esta fora do ar!`,
-          color: 0xff0000,
-          fields: [
-            { name: "URL", value: service.url, inline: true },
-            { name: "Status", value: "Offline", inline: true },
-            { name: "Acao", value: "Redeploy automatico iniciado", inline: false },
-          ],
-          timestamp: new Date().toISOString(),
-        };
+    let title = "";
+    let description = "";
+    let color = 0x000000;
+    const fields: any[] = [
+      { name: "URL", value: service.url, inline: true },
+    ];
+
+    if (isRecovery) {
+      title = "✅ Servico Recuperado";
+      description = `**${service.name}** voltou ao ar!`;
+      color = 0x00ff00;
+      fields.push({ name: "Status", value: "Online", inline: true });
+    } else if (attempt && attempt < 3) {
+      title = "⚠️ Instabilidade Detectada";
+      description = `**${service.name}** falhou no check de saude.`;
+      color = 0xffa500; // Orange
+      fields.push({ name: "Status", value: `Tentativa ${attempt}/3`, inline: true });
+    } else {
+      // Falha confirmada (3/3)
+      title = "🚨 Servico Offline";
+      description = `**${service.name}** esta fora do ar!`;
+      color = 0xff0000;
+      fields.push({ name: "Status", value: "Offline (3/3)", inline: true });
+
+      if (service.coolifyWebhook) {
+        fields.push({ name: "Acao", value: "Redeploy automatico iniciado", inline: false });
+      } else {
+        fields.push({ name: "Acao", value: "De fato caiu e precisa fazer um redeploy manual", inline: false });
+      }
+    }
+
+    const embed = {
+      title,
+      description,
+      color,
+      fields,
+      timestamp: new Date().toISOString(),
+    };
 
     try {
       await axios.post(service.discordWebhook, { embeds: [embed] });
-      console.log(`[MONITOR] Notificacao Discord enviada para: ${service.name}`);
+      console.log(`[MONITOR] Notificacao Discord enviada para: ${service.name} (${isRecovery ? 'Recovery' : (attempt ? 'Attempt ' + attempt : 'Failure')})`);
     } catch (err) {
       console.error(`[MONITOR] Erro ao enviar notificacao Discord:`, err);
     }
