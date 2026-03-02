@@ -11,7 +11,7 @@ router.use(authenticate);
 // POST /services - Cadastrar nova API para monitoramento
 router.post("/", async (req: AuthRequest, res: Response) => {
   try {
-    const { name, url, checkInterval, discordWebhook, coolifyWebhook, coolifyToken } = req.body;
+    const { name, url, checkInterval, discordWebhook, coolifyWebhook, coolifyToken, isActive } = req.body;
     const userId = req.user?.uid;
 
     if (!userId) {
@@ -32,12 +32,15 @@ router.post("/", async (req: AuthRequest, res: Response) => {
       discordWebhook: discordWebhook || "",
       coolifyWebhook: coolifyWebhook || "",
       coolifyToken: coolifyToken || "",
+      isActive: isActive !== undefined ? isActive : true,
     });
 
     console.log(`[API] Servico cadastrado: ${service.name} (${service.url}) pelo usuario ${userId}`);
 
-    // Iniciar monitoramento imediatamente
-    monitor.startWatching(service);
+    // Iniciar monitoramento imediatamente se estiver ativo
+    if (service.isActive) {
+      monitor.startWatching(service);
+    }
 
     res.status(201).json(service);
   } catch (err) {
@@ -78,7 +81,7 @@ router.get("/:id", async (req: AuthRequest, res: Response) => {
 // PUT /services/:id - Atualizar servico
 router.put("/:id", async (req: AuthRequest, res: Response) => {
   try {
-    const { name, url, checkInterval, discordWebhook, coolifyWebhook, coolifyToken } = req.body;
+    const { name, url, checkInterval, discordWebhook, coolifyWebhook, coolifyToken, isActive } = req.body;
     const userId = req.user?.uid;
 
     const service = await Service.findOne({ _id: req.params.id, userId });
@@ -96,13 +99,16 @@ router.put("/:id", async (req: AuthRequest, res: Response) => {
     if (discordWebhook !== undefined) service.discordWebhook = discordWebhook;
     if (coolifyWebhook !== undefined) service.coolifyWebhook = coolifyWebhook;
     if (coolifyToken !== undefined) service.coolifyToken = coolifyToken;
+    if (isActive !== undefined) service.isActive = isActive;
 
     await service.save();
 
     console.log(`[API] Servico atualizado: ${service.name}`);
 
-    // Reiniciar monitoramento com novos dados
-    monitor.startWatching(service);
+    // Reiniciar monitoramento com novos dados se estiver ativo
+    if (service.isActive) {
+      monitor.startWatching(service);
+    }
 
     res.json(service);
   } catch (err) {

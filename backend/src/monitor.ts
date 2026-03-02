@@ -27,7 +27,9 @@ class Monitor {
     console.log(`[MONITOR] Iniciando monitoramento de ${services.length} servico(s)`);
 
     for (const service of services) {
-      this.startWatching(service);
+      if (service.isActive) {
+        this.startWatching(service);
+      }
     }
 
     // Snapshot horario de todos os servicos
@@ -70,12 +72,24 @@ class Monitor {
     console.log(`[MONITOR] Watchdog ativo para: ${service.name} | Intervalo: ${service.checkInterval}ms`);
 
     const runLoop = async () => {
+      const currentService = await Service.findById(id);
+      
+      // Se não achar o serviço ou ele estiver inativo, para o watchdog
+      if (!currentService || !currentService.isActive) {
+        console.log(`[MONITOR] Watchdog encerrado para: ${id} (Inativo ou removido)`);
+        this.stopWatching(id);
+        return;
+      }
+
       await this.checkService(id);
       
-      const currentService = await Service.findById(id);
-      if (currentService) {
-        const timeout = setTimeout(runLoop, currentService.checkInterval || 3000);
+      // Re-verificar após o check (caso tenha mudado durante a execução)
+      const freshService = await Service.findById(id);
+      if (freshService && freshService.isActive) {
+        const timeout = setTimeout(runLoop, freshService.checkInterval || 3000);
         this.intervals.set(id, timeout as any);
+      } else {
+         this.stopWatching(id);
       }
     };
 

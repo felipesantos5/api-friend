@@ -11,4 +11,5 @@ export interface IService extends Document {
   coolifyToken: string;
   lastFailAt: Date | null;
   isDeploying: boolean;
+  isActive: boolean;
 }

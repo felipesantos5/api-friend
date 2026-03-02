@@ -13,6 +13,7 @@ const ServiceSchema = new Schema<IService>(
     coolifyToken: { type: String, default: "" },
     lastFailAt: { type: Date, default: null },
     isDeploying: { type: Boolean, default: false },
+    isActive: { type: Boolean, default: true },
   },
   { timestamps: true }
 );

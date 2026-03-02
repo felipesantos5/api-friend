@@ -10,6 +10,7 @@ export interface Service {
   coolifyToken: string;
   lastFailAt: string | null;
   isDeploying: boolean;
+  isActive: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -34,4 +35,5 @@ export interface UpdateServicePayload {
   discordWebhook?: string;
   coolifyWebhook?: string;
   coolifyToken?: string;
+  isActive?: boolean;
 }

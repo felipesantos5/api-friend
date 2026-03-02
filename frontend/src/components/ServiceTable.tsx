@@ -6,9 +6,10 @@ interface ServiceTableProps {
   services: Service[];
   isLoading: boolean;
   onConfigure: (service: Service) => void;
+  onToggleActive: (service: Service, isActive: boolean) => void;
 }
 
-export function ServiceTable({ services, isLoading, onConfigure }: ServiceTableProps) {
+export function ServiceTable({ services, isLoading, onConfigure, onToggleActive }: ServiceTableProps) {
   if (isLoading) {
     return (
       <div className="flex flex-col items-center justify-center py-32 text-zinc-500">
@@ -34,12 +35,13 @@ export function ServiceTable({ services, isLoading, onConfigure }: ServiceTableP
             <th className="px-4 py-3 text-left text-sm font-medium text-zinc-400">URL</th>
             <th className="px-4 py-3 text-left text-sm font-medium text-zinc-400">Status</th>
             <th className="px-4 py-3 text-sm font-medium text-zinc-400 text-center">7-day</th>
+            <th className="px-4 py-3 text-center text-sm font-medium text-zinc-400">Monitor</th>
             <th className="px-4 py-3 text-right text-sm font-medium text-zinc-400 tracking-widest">Actions</th>
           </tr>
         </thead>
         <tbody>
           {services.map((service) => (
-            <ServiceRow key={service._id} service={service} onConfigure={onConfigure} />
+            <ServiceRow key={service._id} service={service} onConfigure={onConfigure} onToggleActive={onToggleActive} />
           ))}
         </tbody>
       </table>

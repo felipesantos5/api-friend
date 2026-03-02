@@ -3,7 +3,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Info, Globe } from "lucide-react";
+import { Info, Globe, ShieldCheck } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
 import type { Service, UpdateServicePayload } from "@/types";
 
 interface ConfigureServiceDialogProps {
@@ -15,18 +16,24 @@ interface ConfigureServiceDialogProps {
 }
 
 export function ConfigureServiceDialog({ service, open, onOpenChange, onSave, onDelete }: ConfigureServiceDialogProps) {
+  const [name, setName] = useState("");
+  const [url, setUrl] = useState("");
   const [discordWebhook, setDiscordWebhook] = useState("");
   const [coolifyWebhook, setCoolifyWebhook] = useState("");
   const [coolifyToken, setCoolifyToken] = useState("");
   const [checkInterval, setCheckInterval] = useState("1");
+  const [isActive, setIsActive] = useState(true);
   const [loading, setLoading] = useState(false);
   const [showIpInfo, setShowIpInfo] = useState(false);
 
   useEffect(() => {
     if (service) {
+      setName(service.name);
+      setUrl(service.url);
       setDiscordWebhook(service.discordWebhook);
       setCoolifyWebhook(service.coolifyWebhook);
       setCoolifyToken(service.coolifyToken);
+      setIsActive(service.isActive ?? true);
       // Convert milliseconds to minutes for display
       setCheckInterval(Math.max(1, Math.round(service.checkInterval / 60000)).toString());
     }
@@ -40,10 +47,13 @@ export function ConfigureServiceDialog({ service, open, onOpenChange, onSave, on
       // Convert minutes to milliseconds
       const checkIntervalMs = (Number(checkInterval) || 1) * 60000;
       await onSave(service._id, {
+        name,
+        url,
         discordWebhook,
         coolifyWebhook,
         coolifyToken,
-        checkInterval: checkIntervalMs
+        checkInterval: checkIntervalMs,
+        isActive
       });
       onOpenChange(false);
     } finally {
@@ -71,6 +81,45 @@ export function ConfigureServiceDialog({ service, open, onOpenChange, onSave, on
             <DialogTitle>Configure {service?.name}</DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSave} className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="name">Nome do Serviço</Label>
+                <Input
+                  id="name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="Ex: Minha API"
+                  className="bg-zinc-800 border-zinc-700"
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="interval">Intervalo (minutos)</Label>
+                <Input
+                  id="interval"
+                  type="number"
+                  min="1"
+                  value={checkInterval}
+                  onChange={(e) => setCheckInterval(e.target.value)}
+                  placeholder="1"
+                  className="bg-zinc-800 border-zinc-700"
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="url">Link da API (Health Check)</Label>
+              <Input
+                id="url"
+                value={url}
+                onChange={(e) => setUrl(e.target.value)}
+                placeholder="https://api.example.com/health"
+                className="bg-zinc-800 border-zinc-700"
+                required
+              />
+            </div>
+
             <div className="space-y-2">
               <Label htmlFor="discord">Discord Webhook</Label>
               <Input
@@ -78,18 +127,6 @@ export function ConfigureServiceDialog({ service, open, onOpenChange, onSave, on
                 value={discordWebhook}
                 onChange={(e) => setDiscordWebhook(e.target.value)}
                 placeholder="https://discord.com/api/webhooks/..."
-                className="bg-zinc-800 border-zinc-700"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="interval">Check Interval (minutes)</Label>
-              <Input
-                id="interval"
-                type="number"
-                min="1"
-                value={checkInterval}
-                onChange={(e) => setCheckInterval(e.target.value)}
-                placeholder="1"
                 className="bg-zinc-800 border-zinc-700"
               />
             </div>
@@ -122,6 +159,20 @@ export function ConfigureServiceDialog({ service, open, onOpenChange, onSave, on
                 onChange={(e) => setCoolifyToken(e.target.value)}
                 placeholder="Bearer token"
                 className="bg-zinc-800 border-zinc-700"
+              />
+            </div>
+
+            <div className="flex items-center justify-between p-3 rounded-lg bg-zinc-800/50 border border-zinc-800">
+              <div className="space-y-0.5">
+                <Label className="text-sm font-medium flex items-center gap-2">
+                  <ShieldCheck size={14} className="text-[#217ECE]" />
+                  Monitoramento Ativo
+                </Label>
+                <p className="text-[10px] text-zinc-500">Habilite para continuar checando o status automaticamente.</p>
+              </div>
+              <Switch
+                checked={isActive}
+                onCheckedChange={setIsActive}
               />
             </div>
 

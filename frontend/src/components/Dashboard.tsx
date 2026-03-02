@@ -48,13 +48,19 @@ export function Dashboard() {
     await fetchServices();
   }
 
+  async function handleToggleActive(service: Service, isActive: boolean) {
+    setServices((prev) => prev.map((s) => (s._id === service._id ? { ...s, isActive } : s)));
+    await updateService(service._id, { isActive });
+    await fetchServices();
+  }
+
   function handleConfigure(service: Service) {
     setConfiguring(service);
     setConfigOpen(true);
   }
 
-  const onlineCount = services.filter((s) => s.status === "online").length;
-  const offlineCount = services.filter((s) => s.status === "offline").length;
+  const onlineCount = services.filter((s) => s.isActive !== false && s.status === "online").length;
+  const offlineCount = services.filter((s) => s.isActive !== false && s.status === "offline").length;
 
   return (
     <div className="min-h-screen bg-black text-zinc-100 selection:bg-[#217ECE]/30">
@@ -105,7 +111,12 @@ export function Dashboard() {
         </div>
 
         {/* Table */}
-        <ServiceTable services={services} isLoading={isLoading} onConfigure={handleConfigure} />
+        <ServiceTable
+          services={services}
+          isLoading={isLoading}
+          onConfigure={handleConfigure}
+          onToggleActive={handleToggleActive}
+        />
 
         {/* Configure Dialog */}
         <ConfigureServiceDialog
