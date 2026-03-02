@@ -39,21 +39,21 @@ export function AddServiceDialog({ onAdd }: AddServiceDialogProps) {
       <DialogTrigger asChild>
         <Button className="bg-primary hover:bg-primary/90 text-white px-3 sm:px-4 py-1.5 sm:py-2 h-auto text-xs sm:text-sm">
           <Plus className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
-          Add Service
+          Adicionar Serviço
         </Button>
       </DialogTrigger>
       <DialogContent className="bg-zinc-900 border-zinc-800">
         <DialogHeader>
-          <DialogTitle>Add Service</DialogTitle>
+          <DialogTitle>Adicionar Serviço</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="name">Name</Label>
+            <Label htmlFor="name">Nome</Label>
             <Input
               id="name"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="My API"
+              placeholder="Minha API"
               className="bg-zinc-800 border-zinc-700"
             />
           </div>
@@ -63,12 +63,12 @@ export function AddServiceDialog({ onAdd }: AddServiceDialogProps) {
               id="url"
               value={url}
               onChange={(e) => setUrl(e.target.value)}
-              placeholder="https://api.example.com/health"
+              placeholder="https://api.exemplo.com/health"
               className="bg-zinc-800 border-zinc-700"
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="interval">Check Interval (minutes)</Label>
+            <Label htmlFor="interval">Intervalo de Verificação (minutos)</Label>
             <Input
               id="interval"
               type="number"
@@ -80,7 +80,7 @@ export function AddServiceDialog({ onAdd }: AddServiceDialogProps) {
             />
           </div>
           <Button type="submit" disabled={loading || !name || !url} className="w-full bg-primary hover:bg-primary/90 text-white">
-            {loading ? "Adding..." : "Add Service"}
+            {loading ? "Adicionando..." : "Adicionar Serviço"}
           </Button>
         </form>
       </DialogContent>

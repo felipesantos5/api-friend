@@ -33,9 +33,9 @@ export function ServiceRow({ service, onConfigure, onToggleActive }: ServiceRowP
         {!service.isActive ? (
           <Badge className="bg-zinc-600/20 text-zinc-400 border-zinc-600/30 hover:bg-zinc-600/20">PAUSADO</Badge>
         ) : service.status === "online" ? (
-          <Badge className="bg-green-600/20 text-green-400 border-green-600/30 hover:bg-green-600/20">UP</Badge>
+          <Badge className="bg-green-600/20 text-green-400 border-green-600/30 hover:bg-green-600/20">ONLINE</Badge>
         ) : (
-          <Badge className="bg-red-600/20 text-red-400 border-red-600/30 hover:bg-red-600/20">DOWN</Badge>
+          <Badge className="bg-red-600/20 text-red-400 border-red-600/30 hover:bg-red-600/20">OFFLINE</Badge>
         )}
       </td>
       <td className="px-4 py-3 text-center">

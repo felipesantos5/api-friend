@@ -162,8 +162,8 @@ class Monitor {
   private async checkService(id: string): Promise<void> {
     try {
       const service = await Service.findById(id);
-      if (!service) {
-        this.stopWatching(id);
+      if (!service || !service.isActive) {
+        if (!service) this.stopWatching(id);
         return;
       }
 
@@ -186,31 +186,41 @@ class Monitor {
       // Se falhou a primeira vez, avisa no Discord (1/3) e aguarda 2 min
       console.log(`[MONITOR] ⚠️ Falha detectada em ${service.name}. Tentativa 1/3 enviando para Discord...`);
       await this.sendDiscordNotification(service, false, 1);
+      
       await new Promise(resolve => setTimeout(resolve, RETRY_DELAY_MS));
+      
+      // Re-verificar se continua ativo após o delay
+      const serviceAfterRetry1 = await Service.findById(id);
+      if (!serviceAfterRetry1 || !serviceAfterRetry1.isActive) return;
 
       // 2ª Tentativa
-      const isOnlineRetry1 = await this.performHealthCheck(service.url);
+      const isOnlineRetry1 = await this.performHealthCheck(serviceAfterRetry1.url);
       if (isOnlineRetry1) {
-        await this.sendDiscordNotification(service, true);
-        await this.handleSuccess(service);
+        await this.sendDiscordNotification(serviceAfterRetry1, true);
+        await this.handleSuccess(serviceAfterRetry1);
         return;
       }
 
       // Se falhou a segunda vez, avisa no Discord (2/3) e aguarda 2 min
-      console.log(`[MONITOR] ⚠️ Segunda falha em ${service.name}. Tentativa 2/3 enviando para Discord...`);
-      await this.sendDiscordNotification(service, false, 2);
+      console.log(`[MONITOR] ⚠️ Segunda falha em ${serviceAfterRetry1.name}. Tentativa 2/3 enviando para Discord...`);
+      await this.sendDiscordNotification(serviceAfterRetry1, false, 2);
+      
       await new Promise(resolve => setTimeout(resolve, RETRY_DELAY_MS));
 
+      // Re-verificar se continua ativo após o delay
+      const serviceAfterRetry2 = await Service.findById(id);
+      if (!serviceAfterRetry2 || !serviceAfterRetry2.isActive) return;
+
       // 3ª Tentativa
-      const isOnlineRetry2 = await this.performHealthCheck(service.url);
+      const isOnlineRetry2 = await this.performHealthCheck(serviceAfterRetry2.url);
       if (isOnlineRetry2) {
-        await this.sendDiscordNotification(service, true);
-        await this.handleSuccess(service);
+        await this.sendDiscordNotification(serviceAfterRetry2, true);
+        await this.handleSuccess(serviceAfterRetry2);
         return;
       }
 
       // Se falhou as 3 vezes, aí sim marca como offline e age (handleFailure enviará o 3/3)
-      await this.handleFailure(service);
+      await this.handleFailure(serviceAfterRetry2);
     } catch (err) {
       console.error(`[MONITOR] Erro critico ao verificar servico ${id}:`, err);
     }

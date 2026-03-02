@@ -21,7 +21,7 @@ export function ServiceTable({ services, isLoading, onConfigure, onToggleActive 
   if (services.length === 0) {
     return (
       <div className="text-center py-16 text-zinc-500 text-lg border border-dashed border-zinc-800 rounded-lg">
-        No services yet. Add one to start monitoring.
+        Nenhum serviço ainda. Adicione um para começar a monitorar.
       </div>
     );
   }
@@ -31,12 +31,12 @@ export function ServiceTable({ services, isLoading, onConfigure, onToggleActive 
       <table className="w-full min-w-[500px] transition-all">
         <thead>
           <tr className="border-b border-zinc-800 bg-zinc-900/50">
-            <th className="px-4 py-3 text-left text-sm font-medium text-zinc-400">Name</th>
+            <th className="px-4 py-3 text-left text-sm font-medium text-zinc-400">Nome</th>
             <th className="px-4 py-3 text-left text-sm font-medium text-zinc-400">URL</th>
             <th className="px-4 py-3 text-left text-sm font-medium text-zinc-400">Status</th>
-            <th className="px-4 py-3 text-sm font-medium text-zinc-400 text-center">7-day</th>
-            <th className="px-4 py-3 text-center text-sm font-medium text-zinc-400">Monitor</th>
-            <th className="px-4 py-3 text-right text-sm font-medium text-zinc-400 tracking-widest">Actions</th>
+            <th className="px-4 py-3 text-sm font-medium text-zinc-400 text-center">7 dias</th>
+            <th className="px-4 py-3 text-center text-sm font-medium text-zinc-400">Monitorar</th>
+            <th className="px-4 py-3 text-right text-sm font-medium text-zinc-400 tracking-widest">Ações</th>
           </tr>
         </thead>
         <tbody>

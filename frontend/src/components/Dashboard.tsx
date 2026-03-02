@@ -101,11 +101,11 @@ export function Dashboard() {
             <span className="font-bold">{services.length}</span>
           </div>
           <div className="px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg bg-zinc-900 border border-zinc-800 text-xs sm:text-sm">
-            <span className="text-green-500 mr-1 sm:mr-2 uppercase tracking-tighter">On:</span>
+            <span className="text-green-500 mr-1 sm:mr-2 uppercase tracking-tighter">Online:</span>
             <span className="font-bold text-green-500">{onlineCount}</span>
           </div>
           <div className="px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg bg-red-500/10 border border-red-500/20 text-xs sm:text-sm">
-            <span className="text-red-500 mr-1 sm:mr-2 uppercase tracking-tighter">Off:</span>
+            <span className="text-red-500 mr-1 sm:mr-2 uppercase tracking-tighter">Offline:</span>
             <span className="font-bold text-red-500">{offlineCount}</span>
           </div>
         </div>

@@ -63,7 +63,7 @@ export function ConfigureServiceDialog({ service, open, onOpenChange, onSave, on
 
   async function handleDelete() {
     if (!service) return;
-    if (!confirm(`Delete "${service.name}"?`)) return;
+    if (!confirm(`Excluir "${service.name}"?`)) return;
     setLoading(true);
     try {
       await onDelete(service._id);
@@ -78,7 +78,7 @@ export function ConfigureServiceDialog({ service, open, onOpenChange, onSave, on
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="bg-zinc-900 border-zinc-800">
           <DialogHeader>
-            <DialogTitle>Configure {service?.name}</DialogTitle>
+            <DialogTitle>Configurar {service?.name}</DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSave} className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
@@ -114,14 +114,14 @@ export function ConfigureServiceDialog({ service, open, onOpenChange, onSave, on
                 id="url"
                 value={url}
                 onChange={(e) => setUrl(e.target.value)}
-                placeholder="https://api.example.com/health"
+                placeholder="https://api.exemplo.com/health"
                 className="bg-zinc-800 border-zinc-700"
                 required
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="discord">Discord Webhook</Label>
+              <Label htmlFor="discord">Webhook do Discord</Label>
               <Input
                 id="discord"
                 value={discordWebhook}
@@ -132,7 +132,7 @@ export function ConfigureServiceDialog({ service, open, onOpenChange, onSave, on
             </div>
             <div className="space-y-2">
               <div className="flex items-center gap-2">
-                <Label htmlFor="coolify">Coolify Webhook</Label>
+                <Label htmlFor="coolify">Webhook do Coolify</Label>
                 <button
                   type="button"
                   onClick={() => setShowIpInfo(true)}
@@ -146,18 +146,18 @@ export function ConfigureServiceDialog({ service, open, onOpenChange, onSave, on
                 id="coolify"
                 value={coolifyWebhook}
                 onChange={(e) => setCoolifyWebhook(e.target.value)}
-                placeholder="https://coolify.example.com/api/..."
+                placeholder="https://coolify.exemplo.com/api/..."
                 className="bg-zinc-800 border-zinc-700"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="token">Coolify Token</Label>
+              <Label htmlFor="token">Token do Coolify</Label>
               <Input
                 id="token"
                 type="password"
                 value={coolifyToken}
                 onChange={(e) => setCoolifyToken(e.target.value)}
-                placeholder="Bearer token"
+                placeholder="Token Bearer"
                 className="bg-zinc-800 border-zinc-700"
               />
             </div>
@@ -178,10 +178,10 @@ export function ConfigureServiceDialog({ service, open, onOpenChange, onSave, on
 
             <div className="flex gap-2">
               <Button type="submit" disabled={loading} className="flex-1 bg-primary hover:bg-primary/90 text-white">
-                {loading ? "Saving..." : "Save"}
+                {loading ? "Salvando..." : "Salvar"}
               </Button>
               <Button type="button" variant="destructive" disabled={loading} onClick={handleDelete}>
-                Delete
+                Excluir
               </Button>
             </div>
           </form>

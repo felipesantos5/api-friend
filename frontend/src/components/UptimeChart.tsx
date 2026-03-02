@@ -31,7 +31,7 @@ export function UptimeChart({ days, currentStatus }: UptimeChartProps) {
             rx={2}
             fill={fill}
           >
-            <title>{day.date}: {day.dominant ?? "no data"}</title>
+            <title>{day.date}: {status === "online" ? "online" : status === "offline" ? "offline" : "sem dados"}</title>
           </rect>
         );
       })}
