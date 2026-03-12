@@ -9,6 +9,7 @@ const RETRY_DELAY_MS = 2 * 60 * 1000; // 2 minutos entre tentativas de queda
 
 class Monitor {
   private intervals: Map<string, NodeJS.Timeout> = new Map();
+  private generations: Map<string, number> = new Map();
   private snapshotInterval: NodeJS.Timeout | null = null;
 
   /**
@@ -63,15 +64,18 @@ class Monitor {
    */
   startWatching(service: IService): void {
     const id = service._id.toString();
+    const newGen = (this.generations.get(id) || 0) + 1;
+    this.generations.set(id, newGen);
 
     // Evitar duplicatas
-    if (this.intervals.has(id)) {
-      this.stopWatching(id);
-    }
+    this.stopWatching(id, false);
 
-    console.log(`[MONITOR] Watchdog ativo para: ${service.name} | Intervalo: ${service.checkInterval}ms`);
+    console.log(`[MONITOR] Watchdog ativo para: ${service.name} | Intervalo: ${service.checkInterval}ms | Gen: ${newGen}`);
 
-    const runLoop = async () => {
+    const runLoop = async (gen: number) => {
+      // Verifica se ainda é a geração ativa
+      if (this.generations.get(id) !== gen) return;
+
       const currentService = await Service.findById(id);
       
       // Se não achar o serviço ou ele estiver inativo, para o watchdog
@@ -81,31 +85,36 @@ class Monitor {
         return;
       }
 
-      await this.checkService(id);
+      await this.checkService(id, gen);
       
       // Re-verificar após o check (caso tenha mudado durante a execução)
+      if (this.generations.get(id) !== gen) return;
+
       const freshService = await Service.findById(id);
       if (freshService && freshService.isActive) {
-        const timeout = setTimeout(runLoop, freshService.checkInterval || 3000);
+        const timeout = setTimeout(() => runLoop(gen), freshService.checkInterval || 3000);
         this.intervals.set(id, timeout as any);
       } else {
          this.stopWatching(id);
       }
     };
 
-    const initialTimeout = setTimeout(runLoop, service.checkInterval || 3000);
+    const initialTimeout = setTimeout(() => runLoop(newGen), service.checkInterval || 3000);
     this.intervals.set(id, initialTimeout as any);
   }
 
   /**
    * Para o monitoramento de um servico
    */
-  stopWatching(id: string): void {
+  stopWatching(id: string, clearGen: boolean = true): void {
     const timeout = this.intervals.get(id);
     if (timeout) {
       clearTimeout(timeout);
       this.intervals.delete(id);
       console.log(`[MONITOR] Watchdog parado para ID: ${id}`);
+    }
+    if (clearGen) {
+      this.generations.delete(id);
     }
   }
 
@@ -159,7 +168,7 @@ class Monitor {
   /**
    * Verifica a saude de um servico com logica de retentativa
    */
-  private async checkService(id: string): Promise<void> {
+  private async checkService(id: string, gen: number): Promise<void> {
     try {
       const service = await Service.findById(id);
       if (!service || !service.isActive) {
@@ -184,12 +193,14 @@ class Monitor {
       }
 
       // Se falhou a primeira vez, avisa no Discord (1/3) e aguarda 2 min
+      if (this.generations.get(id) !== gen) return;
       console.log(`[MONITOR] ⚠️ Falha detectada em ${service.name}. Tentativa 1/3 enviando para Discord...`);
       await this.sendDiscordNotification(service, false, 1);
       
       await new Promise(resolve => setTimeout(resolve, RETRY_DELAY_MS));
       
       // Re-verificar se continua ativo após o delay
+      if (this.generations.get(id) !== gen) return;
       const serviceAfterRetry1 = await Service.findById(id);
       if (!serviceAfterRetry1 || !serviceAfterRetry1.isActive) return;
 
@@ -202,12 +213,14 @@ class Monitor {
       }
 
       // Se falhou a segunda vez, avisa no Discord (2/3) e aguarda 2 min
+      if (this.generations.get(id) !== gen) return;
       console.log(`[MONITOR] ⚠️ Segunda falha em ${serviceAfterRetry1.name}. Tentativa 2/3 enviando para Discord...`);
       await this.sendDiscordNotification(serviceAfterRetry1, false, 2);
       
       await new Promise(resolve => setTimeout(resolve, RETRY_DELAY_MS));
 
       // Re-verificar se continua ativo após o delay
+      if (this.generations.get(id) !== gen) return;
       const serviceAfterRetry2 = await Service.findById(id);
       if (!serviceAfterRetry2 || !serviceAfterRetry2.isActive) return;
 
@@ -220,6 +233,7 @@ class Monitor {
       }
 
       // Se falhou as 3 vezes, aí sim marca como offline e age (handleFailure enviará o 3/3)
+      if (this.generations.get(id) !== gen) return;
       await this.handleFailure(serviceAfterRetry2);
     } catch (err) {
       console.error(`[MONITOR] Erro critico ao verificar servico ${id}:`, err);
